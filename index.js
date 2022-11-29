@@ -13,11 +13,8 @@ app.use(express.json());
 
 // mongodb
 
- 
-
-const uri =
-    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dydehr7.mongodb.net/?retryWrites=true&w=majority`;
-  console.log(uri);
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dydehr7.mongodb.net/?retryWrites=true&w=majority`;
+console.log(uri);
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -26,25 +23,48 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-      const categoryCollection = client.db("booksify").collection("category");
-    //    console.log(categoryCollection);
-    // read all data from appointmentOptions
+    const categoryCollection = client.db("booksify").collection("category");
+    const usersCollection = client.db("booksify").collection("users");
+
     app.get("/category", async (req, res) => {
-        const query = {};
-           
-      const options = await categoryCollection
-        .find(query)
-            .toArray();
-      console.log(options)
+      const query = {};
+
+      const options = await categoryCollection.find(query).toArray();
+    //   console.log(options);
       res.send(options);
     });
-  } finally {
+
+    //   save users data
+    app.post("/users", async (req, res) => {
+        const user = req.body;
+       console.log(user);
+    const query = {
+      name: user.name,
+      email: user.email,
+    };
+           console.log(query);
+         const alreadyAccount = await usersCollection.find(query).toArray();
+        if (alreadyAccount.length) {
+          const message = `You already have signed up`;
+          // console.log(message);
+          return res.send({ acknowledged: false, message });
+        }
+      const result = await usersCollection
        
+        .insertOne(user);
+     console.log(result);
+     res.send(result);
+    });
+    //   app.get("/users", async (req, res) => {
+    //          const query = {};
+    //       const options = await usersCollection.find(query).toArray();
+          
+   
+    //   });
+  } finally {
   }
 }
 run().catch(console.log);
-
- 
 
 app.get("/", async (req, res) => {
   res.send("booksify server is running");
