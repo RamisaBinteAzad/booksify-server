@@ -70,14 +70,13 @@
        // user already users database e ache kina seta check kore dekhte hobe
        const query = { email: email };
        const user = await usersCollection.findOne(query);
-       // users database theke user er sab details pabo
-       // console.log(user);
-       // res.send({ accessToken:'token'});
+       
 
        if (user) {
          const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, {
-           expiresIn: "21d",
-         });
+           expiresIn: "25d",
+         }); 
+         console.log(user);
          return res.send({ accessToken: token });
        }
        res.status(403).send({ accessToken: "" });
@@ -138,11 +137,42 @@
       app.post("/bookings", async (req, res) => {
         const booking = req.body;
         console.log(booking);
-       
+          const query = {
+            productId: booking.productId,
+            email: booking.email,
+
+            productName: booking.productName,
+          };
+          // console.log(query);
+          const alreadyBooked = await bookingsCollection.find(query).toArray();
+          console.log(alreadyBooked);
+          if (alreadyBooked.length) {
+            const message = `You already have a booking on ${booking.productName}`;
+            // console.log(message);
+            return res.send({ acknowledged: false, message });
+          }
         const result = await bookingsCollection.insertOne(booking);
         console.log(result);
         res.send(result);
       });
+     app.get("/bookings", verifyJWT, async (req, res) => {
+       const email = req.query.email;
+       console.log("email", email);
+       console.log('token',req.headers.authorization)
+       
+
+       const decodedEmail = req.decoded.email;
+
+       console.log("decodedEmail", decodedEmail);
+       if (email != decodedEmail) {
+         return res.status(403).send({ message: "Forbidden Access" });
+       }
+
+       
+       const query = { email: email };
+       const bookings = await bookingsCollection.find(query).toArray();
+       res.send(bookings);
+     });
 
    } finally {
    }
