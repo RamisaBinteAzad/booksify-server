@@ -44,6 +44,7 @@
      const categoryCollection = client.db("booksify").collection("category");
      const usersCollection = client.db("booksify").collection("users");
      const productsCollection = client.db("booksify").collection("products");
+        const bookingsCollection = client.db("booksify").collection("bookings");
     
     //  const sellerproductsCollection = client
     //    .db("booksify")
@@ -134,6 +135,14 @@
        //
        res.send(categoryWiseProduct);
      });
+      app.post("/bookings", async (req, res) => {
+        const booking = req.body;
+        console.log(booking);
+       
+        const result = await bookingsCollection.insertOne(booking);
+        console.log(result);
+        res.send(result);
+      });
 
    } finally {
    }
